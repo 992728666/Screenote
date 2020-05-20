@@ -9,9 +9,6 @@ namespace Screenote
         [DllImport("user32.dll", SetLastError = true)]
         public static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, Keys key);
 
-        [DllImport("user32.dll", SetLastError = true)]
-        public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
-
         [STAThread]
         static void Main()
         {
@@ -19,6 +16,7 @@ namespace Screenote
             Application.SetCompatibleTextRenderingDefault(false);
             Screen screen = new Screen();
             RegisterHotKey(screen.Handle, 936, 0, Keys.PrintScreen);
+            RegisterHotKey(screen.Handle, 936, 0, Keys.Pause);
             screen.Opacity = 0;
             screen.Show();
             Application.Run();
