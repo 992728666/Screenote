@@ -14,6 +14,7 @@ namespace Screenote
         Bitmap bitmapTarget;
         Graphics graphicsMagnifier;
         bool shot = false;
+        long tick = DateTime.Now.Ticks;
 
         [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
@@ -103,6 +104,12 @@ namespace Screenote
 
         private void picture_MouseMove(object sender, MouseEventArgs e)
         {
+            if (DateTime.Now.Ticks - tick < 400000)
+            {
+                return;
+            }
+            tick = DateTime.Now.Ticks;
+
             this.Refresh();
             int X = Cursor.Position.X, Y = Cursor.Position.Y;
             magnifier.Location = new Point(X + 120 > this.Width ? X - 120 : X + 20, Y + 120 > this.Height ? Y - 120 : Y + 20);
