@@ -80,8 +80,27 @@ namespace Screenote
 
         private void picture_MouseDown(object sender, MouseEventArgs e)
         {
-            Start = new Point(e.Location.X, e.Location.Y);
-            shot = true;
+            if (e.Button == MouseButtons.Left)
+            {
+                Start = new Point(e.Location.X, e.Location.Y);
+                shot = true;
+            }
+            if (e.Button == MouseButtons.Right)
+            {
+                this.Visible = false;
+                magnifier.Visible = false;
+                Cursor.Show();
+                GC.Collect();
+            }
+            if (e.Button == MouseButtons.Middle)
+            {
+                Color pixel = bitmapScreen.GetPixel(Cursor.Position.X, Cursor.Position.Y);
+                Clipboard.SetText(pixel.R.ToString("X2") + pixel.G.ToString("X2") + pixel.B.ToString("X2"));
+                this.Visible = false;
+                magnifier.Visible = false;
+                Cursor.Show();
+                GC.Collect();
+            }
         }
 
         private void picture_MouseUp(object sender, MouseEventArgs e)
@@ -168,12 +187,10 @@ namespace Screenote
                     Cursor.Position = new Point(Cursor.Position.X, Cursor.Position.Y + shift);
                     break;
                 case Keys.Space:
-                    Color pixel = bitmapScreen.GetPixel(Cursor.Position.X, Cursor.Position.Y);
-                    Clipboard.SetText(pixel.R.ToString("X2") + pixel.G.ToString("X2") + pixel.B.ToString("X2"));
-                    this.Visible = false;
-                    magnifier.Visible = false;
-                    Cursor.Show();
-                    GC.Collect();
+                    picture_MouseDown(this, new MouseEventArgs(MouseButtons.Middle, 0, Cursor.Position.X, Cursor.Position.Y, 0));
+                    break;
+                case Keys.Escape:
+                    picture_MouseDown(this, new MouseEventArgs(MouseButtons.Right, 0, Cursor.Position.X, Cursor.Position.Y, 0));
                     break;
                 case Keys.Enter:
                     if (shot)
