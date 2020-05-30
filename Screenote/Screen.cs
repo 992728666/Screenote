@@ -86,20 +86,23 @@ namespace Screenote
 
         private void picture_MouseUp(object sender, MouseEventArgs e)
         {
-            End = e.Location;
-            shot = false;
-            int width = Math.Abs(End.X - Start.X) + 1;
-            int height = Math.Abs(End.Y - Start.Y) + 1;
-            if (width > 15 && height > 15)
+            if (shot)
             {
-                Rectangle region = new Rectangle(Math.Min(Start.X, End.X), Math.Min(Start.Y, End.Y), width, height);
-                Note note = new Note(bitmapScreen.Clone(region, System.Drawing.Imaging.PixelFormat.Format24bppRgb), region.Location);
-                note.Show();
+                End = e.Location;
+                shot = false;
+                int width = Math.Abs(End.X - Start.X) + 1;
+                int height = Math.Abs(End.Y - Start.Y) + 1;
+                if (width > 15 && height > 15)
+                {
+                    Rectangle region = new Rectangle(Math.Min(Start.X, End.X), Math.Min(Start.Y, End.Y), width, height);
+                    Note note = new Note(bitmapScreen.Clone(region, System.Drawing.Imaging.PixelFormat.Format24bppRgb), region.Location);
+                    note.Show();
+                }
+                this.Visible = false;
+                magnifier.Visible = false;
+                Cursor.Show();
+                GC.Collect();
             }
-            this.Visible = false;
-            magnifier.Visible = false;
-            Cursor.Show();
-            GC.Collect();
         }
 
         private void picture_MouseMove(object sender, MouseEventArgs e)
@@ -112,7 +115,7 @@ namespace Screenote
 
             this.Refresh();
             int X = Cursor.Position.X, Y = Cursor.Position.Y;
-            magnifier.Location = new Point(X + 120 > this.Width ? X - 120 : X + 20, Y + 120 > this.Height ? Y - 120 : Y + 20);
+            magnifier.Location = new Point(X + 150 > this.Width ? X - 150 : X + 50, Y + 150 > this.Height ? Y - 150 : Y + 50);
 
             int left = X - 12 < 0 ? 12 - X : 0;
             int right = X + 13 > this.Width ? (X + 13 - this.Width) : 0;
@@ -140,6 +143,7 @@ namespace Screenote
             {
                 graphicsScreen.FillRectangles(new SolidBrush(Color.FromArgb(192, 192, 192)), new Rectangle[] { new Rectangle(Start.X, 0, 1, this.Height), new Rectangle(0, Start.Y, this.Width, 1) });
             }
+
         }
 
         private void Screen_KeyDown(object sender, KeyEventArgs e)
@@ -170,6 +174,16 @@ namespace Screenote
                     magnifier.Visible = false;
                     Cursor.Show();
                     GC.Collect();
+                    break;
+                case Keys.Enter:
+                    if (shot)
+                    {
+                        picture_MouseUp(this, new MouseEventArgs(MouseButtons.Left, 0, Cursor.Position.X, Cursor.Position.Y, 0));
+                    }
+                    else
+                    {
+                        picture_MouseDown(this, new MouseEventArgs(MouseButtons.Left, 0, Cursor.Position.X, Cursor.Position.Y, 0));
+                    }
                     break;
             }
         }

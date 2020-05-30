@@ -22,10 +22,11 @@
             // 
             // picture
             // 
-            this.picture.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
+            this.picture.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.picture.BackColor = System.Drawing.Color.White;
+            this.picture.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.picture.Location = new System.Drawing.Point(1, 1);
             this.picture.Margin = new System.Windows.Forms.Padding(0);
             this.picture.Name = "picture";
@@ -51,6 +52,7 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.TopMost = true;
             this.DoubleClick += new System.EventHandler(this.Note_DoubleClick);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Note_KeyDown);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Note_MouseDown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Note_MouseMove);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.Note_MouseUp);
