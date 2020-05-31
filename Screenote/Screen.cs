@@ -23,6 +23,44 @@ namespace Screenote
         [DllImport("user32.dll")]
         private static extern bool AnimateWindow(IntPtr hwnd, int dwTime, int dwFlags);
 
+        internal void RotateImage(Bitmap bitmap)
+        {
+            try
+            {
+                switch (bitmap.GetPropertyItem(274).Value[0])
+                {
+                    case 1:
+                        break;
+                    case 2:
+                        bitmap.RotateFlip(RotateFlipType.RotateNoneFlipX);
+                        break;
+                    case 3:
+                        bitmap.RotateFlip(RotateFlipType.Rotate180FlipNone);
+                        break;
+                    case 4:
+                        bitmap.RotateFlip(RotateFlipType.Rotate180FlipX);
+                        break;
+                    case 5:
+                        bitmap.RotateFlip(RotateFlipType.Rotate90FlipX);
+                        break;
+                    case 6:
+                        bitmap.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                        break;
+                    case 7:
+                        bitmap.RotateFlip(RotateFlipType.Rotate270FlipX);
+                        break;
+                    case 8:
+                        bitmap.RotateFlip(RotateFlipType.Rotate270FlipNone);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            catch
+            {
+            }
+        }
+
         public Screen()
         {
             InitializeComponent();
@@ -69,7 +107,7 @@ namespace Screenote
                         }
                     case 937:
                         {
-                            List<Image> images = new List<Image>();
+                            List<Bitmap> bitmaps = new List<Bitmap>();
                             System.Collections.Specialized.StringCollection files = Clipboard.GetFileDropList();
 
                             if (files != null)
@@ -78,28 +116,55 @@ namespace Screenote
                                 {
                                     try
                                     {
-                                        images.Add(Image.FromFile(file));
+                                        bitmaps.Add(new Bitmap(file));
                                     }
                                     catch
                                     { }
                                 }
                             }
 
-                            Image temp = Clipboard.GetImage();
-                            if (temp != null)
+                            Image image = Clipboard.GetImage();
+                            if (image != null)
                             {
-                                images.Add(temp);
+                                bitmaps.Add(new Bitmap(image));
+                                image.Dispose();
                             }
 
-                            foreach (Image image in images)
+                            foreach (Bitmap bitmap in bitmaps)
                             {
-                                if (image.Width > 15 && image.Height > 15)
+                                if (bitmap.Width > 15 && bitmap.Height > 15)
                                 {
-                                    Rectangle region = new Rectangle(Cursor.Position.X - image.Width / 2, Cursor.Position.Y - image.Height / 2, image.Width, image.Height);
-                                    Note note = new Note(new Bitmap(image), region.Location);
+                                    RotateImage(bitmap);
+                                    Rectangle rectangle = new Rectangle(SystemInformation.VirtualScreen.X + 1, SystemInformation.VirtualScreen.Y + 1, SystemInformation.VirtualScreen.Width - 2, SystemInformation.VirtualScreen.Height - 2);
+
+                                    int width = bitmap.Width, height = bitmap.Height;
+
+                                    if (width > rectangle.Width)
+                                    {
+                                        width = rectangle.Width;
+                                        height = width * bitmap.Height / bitmap.Width;
+                                    }
+
+                                    if (height > rectangle.Height)
+                                    {
+                                        height = rectangle.Height;
+                                        width = height * bitmap.Width / bitmap.Height;
+                                    }
+
+                                    int x = Cursor.Position.X - width / 2, y = Cursor.Position.Y - height / 2;
+
+                                    x = x < rectangle.Left ? rectangle.Left : x;
+                                    y = y < rectangle.Top ? rectangle.Top : y;
+                                    x = x + width > rectangle.Right ? (rectangle.Right - width) : x;
+                                    y = y + height > rectangle.Bottom ? (rectangle.Bottom - height) : y;
+
+                                    Note note = new Note(bitmap, new Point(x, y), new Size(width, height));
                                     note.Show();
                                 }
-                                image.Dispose();
+                                else
+                                {
+                                    bitmap.Dispose();
+                                }
                             }
 
 
@@ -158,7 +223,7 @@ namespace Screenote
                 if (width > 15 && height > 15)
                 {
                     Rectangle region = new Rectangle(Math.Min(Start.X, End.X), Math.Min(Start.Y, End.Y), width, height);
-                    Note note = new Note(bitmapScreen.Clone(region, System.Drawing.Imaging.PixelFormat.Format24bppRgb), region.Location);
+                    Note note = new Note(bitmapScreen.Clone(region, System.Drawing.Imaging.PixelFormat.Format24bppRgb), region.Location, region.Size);
                     note.Show();
                 }
                 this.Visible = false;

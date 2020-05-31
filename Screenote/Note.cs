@@ -9,6 +9,7 @@ namespace Screenote
         bool MoveWindow = false;
         int MoveX;
         int MoveY;
+        Size NoteSize;
 
         bool ResizeWindow = false;
 
@@ -26,13 +27,15 @@ namespace Screenote
 
         Direction direction;
 
-        public Note(Bitmap bitmap, Point location)
+        public Note(Bitmap bitmap, Point location, Size size)
         {
             InitializeComponent();
+            NoteSize = new Size(size.Width + 2, size.Height + 2);
             this.MinimumSize = new Size(16, 16);
+            this.MaximumSize = SystemInformation.VirtualScreen.Size;
             this.Location = new Point(location.X - 1, location.Y - 1);
-            this.Width = bitmap.Width + 2;
-            this.Height = bitmap.Height + 2;
+            this.Width = NoteSize.Width;
+            this.Height = NoteSize.Height;
 
             picture.BackgroundImage = bitmap;
             picture.MouseDown += Note_MouseDown;
@@ -241,22 +244,21 @@ namespace Screenote
             {
                 case Keys.Oemtilde:
                     {
-                        int ImageWidth = picture.BackgroundImage.Width + 2, ImageHeight = picture.BackgroundImage.Height + 2;
                         int width = this.Width, height = this.Height;
                         if (e.Shift)
                         {
-                            this.Width = ImageWidth;
-                            this.Height = ImageHeight;
+                            this.Width = NoteSize.Width;
+                            this.Height = NoteSize.Height;
                         }
                         else
                         {
-                            if (this.Width / this.Height > ImageWidth / ImageHeight)
+                            if (this.Width / this.Height > NoteSize.Width / NoteSize.Height)
                             {
-                                this.Width = this.Height * ImageWidth / ImageHeight;
+                                this.Width = this.Height * NoteSize.Width / NoteSize.Height;
                             }
                             else
                             {
-                                this.Height = this.Width * ImageHeight / ImageWidth;
+                                this.Height = this.Width * NoteSize.Height / NoteSize.Width;
                             }
                         }
                         this.Location = new Point(this.Location.X + (width - this.Width) / 2, this.Location.Y + (height - this.Height) / 2);
