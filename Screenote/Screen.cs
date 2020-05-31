@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -32,36 +33,79 @@ namespace Screenote
         {
             try
             {
-                if (message.WParam.ToInt64() == 936)
+                switch (message.WParam.ToInt64())
                 {
-                    if (this.Visible == false)
-                    {
-                        this.Location = new Point(System.Windows.Forms.Screen.FromPoint(Cursor.Position).Bounds.X, System.Windows.Forms.Screen.FromPoint(Cursor.Position).Bounds.Y);
-                        this.Width = System.Windows.Forms.Screen.FromPoint(Cursor.Position).Bounds.Width;
-                        this.Height = System.Windows.Forms.Screen.FromPoint(Cursor.Position).Bounds.Height;
-
-                        bitmapScreen = new Bitmap(this.Width, this.Height);
-                        using (Graphics graphics = Graphics.FromImage(bitmapScreen as Image))
+                    case 936:
                         {
-                            graphics.CopyFromScreen(System.Windows.Forms.Screen.FromPoint(Cursor.Position).Bounds.X, System.Windows.Forms.Screen.FromPoint(Cursor.Position).Bounds.Y, 0, 0, this.Size);
+                            if (this.Visible == false)
+                            {
+                                this.Location = new Point(System.Windows.Forms.Screen.FromPoint(Cursor.Position).Bounds.X, System.Windows.Forms.Screen.FromPoint(Cursor.Position).Bounds.Y);
+                                this.Width = System.Windows.Forms.Screen.FromPoint(Cursor.Position).Bounds.Width;
+                                this.Height = System.Windows.Forms.Screen.FromPoint(Cursor.Position).Bounds.Height;
+
+                                bitmapScreen = new Bitmap(this.Width, this.Height);
+                                using (Graphics graphics = Graphics.FromImage(bitmapScreen as Image))
+                                {
+                                    graphics.CopyFromScreen(System.Windows.Forms.Screen.FromPoint(Cursor.Position).Bounds.X, System.Windows.Forms.Screen.FromPoint(Cursor.Position).Bounds.Y, 0, 0, this.Size);
+                                }
+
+                                picture.Image = bitmapScreen;
+                                graphicsScreen = picture.CreateGraphics();
+
+                                AnimateWindow(this.Handle, 8, 0x00000010 + 0x00080000 + 0x00020000);
+                                SetForegroundWindow(this.Handle);
+                                this.Visible = true;
+                                magnifier.Visible = true;
+                                Cursor.Hide();
+                            }
+                            else
+                            {
+                                this.Visible = false;
+                                magnifier.Visible = false;
+                                Cursor.Show();
+                                GC.Collect();
+                            }
+                            break;
                         }
+                    case 937:
+                        {
+                            List<Image> images = new List<Image>();
+                            System.Collections.Specialized.StringCollection files = Clipboard.GetFileDropList();
 
-                        picture.Image = bitmapScreen;
-                        graphicsScreen = picture.CreateGraphics();
+                            if (files != null)
+                            {
+                                foreach (string file in files)
+                                {
+                                    try
+                                    {
+                                        images.Add(Image.FromFile(file));
+                                    }
+                                    catch
+                                    { }
+                                }
+                            }
 
-                        AnimateWindow(this.Handle, 8, 0x00000010 + 0x00080000 + 0x00020000);
-                        SetForegroundWindow(this.Handle);
-                        this.Visible = true;
-                        magnifier.Visible = true;
-                        Cursor.Hide();
-                    }
-                    else
-                    {
-                        this.Visible = false;
-                        magnifier.Visible = false;
-                        Cursor.Show();
-                        GC.Collect();
-                    }
+                            Image temp = Clipboard.GetImage();
+                            if (temp != null)
+                            {
+                                images.Add(temp);
+                            }
+
+                            foreach (Image image in images)
+                            {
+                                if (image.Width > 15 && image.Height > 15)
+                                {
+                                    Rectangle region = new Rectangle(Cursor.Position.X - image.Width / 2, Cursor.Position.Y - image.Height / 2, image.Width, image.Height);
+                                    Note note = new Note(new Bitmap(image), region.Location);
+                                    note.Show();
+                                }
+                                image.Dispose();
+                            }
+
+
+                            GC.Collect();
+                            break;
+                        }
                 }
 
                 base.WndProc(ref message);
