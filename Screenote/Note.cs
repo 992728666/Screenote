@@ -30,12 +30,12 @@ namespace Screenote
         public Note(Bitmap bitmap, Point location, Size size)
         {
             InitializeComponent();
-            NoteSize = new Size(size.Width + 2, size.Height + 2);
+            NoteSize = size;
             this.MinimumSize = new Size(16, 16);
             this.MaximumSize = SystemInformation.VirtualScreen.Size;
             this.Location = new Point(location.X - 1, location.Y - 1);
-            this.Width = NoteSize.Width;
-            this.Height = NoteSize.Height;
+            this.Width = NoteSize.Width + 2;
+            this.Height = NoteSize.Height + 2;
 
             picture.BackgroundImage = bitmap;
             picture.MouseDown += Note_MouseDown;
@@ -247,18 +247,18 @@ namespace Screenote
                         int width = this.Width, height = this.Height;
                         if (e.Shift)
                         {
-                            this.Width = NoteSize.Width;
-                            this.Height = NoteSize.Height;
+                            this.Width = NoteSize.Width + 2;
+                            this.Height = NoteSize.Height + 2;
                         }
                         else
                         {
-                            if (this.Width / this.Height > NoteSize.Width / NoteSize.Height)
+                            if ((this.Width - 2) / (this.Height - 2) > NoteSize.Width / NoteSize.Height)
                             {
-                                this.Width = this.Height * NoteSize.Width / NoteSize.Height;
+                                this.Width = (this.Height - 2) * NoteSize.Width / NoteSize.Height + 2;
                             }
                             else
                             {
-                                this.Height = this.Width * NoteSize.Height / NoteSize.Width;
+                                this.Height = (this.Width - 2) * NoteSize.Height / NoteSize.Width + 2;
                             }
                         }
                         this.Location = new Point(this.Location.X + (width - this.Width) / 2, this.Location.Y + (height - this.Height) / 2);
