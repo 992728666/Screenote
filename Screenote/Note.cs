@@ -6,15 +6,7 @@ namespace Screenote
 {
     public partial class Note : Form
     {
-        bool MoveWindow = false;
-        int MoveX;
-        int MoveY;
-        Size NoteSize;
-
-        bool ResizeWindow = false;
-        int WindowRight, WindowBottom;
-
-        internal enum Direction
+        private enum Direction
         {
             Left,
             Right,
@@ -26,7 +18,15 @@ namespace Screenote
             RightBottom
         }
 
-        Direction direction;
+        private Direction direction;
+        private bool MoveWindow = false;
+        private int MoveX;
+        private int MoveY;
+        private Size NoteSize;
+        private bool ResizeWindow = false;
+        private int WindowRight, WindowBottom;
+        private const int edge = 6;
+
 
         public Note(Bitmap bitmap, Point location, Size size)
         {
@@ -45,11 +45,30 @@ namespace Screenote
             picture.DoubleClick += Note_DoubleClick;
         }
 
+        protected override void WndProc(ref Message message)
+        {
+
+            switch (message.WParam.ToInt64())
+            {
+                case 0xF020:
+                    {
+                        this.Bounds = new Rectangle(new Point(this.Location.X + (this.Width - this.MinimumSize.Width) / 2, this.Location.Y + (this.Height - this.MinimumSize.Height) / 2), this.MinimumSize);
+                        return;
+                    }
+                case 0xF030:
+                    {
+                        this.Bounds = new Rectangle(SystemInformation.VirtualScreen.Location, SystemInformation.VirtualScreen.Size);
+                        return;
+                    }
+            }
+            base.WndProc(ref message);
+        }
+
         private void Note_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
             {
-                if ((Control.MousePosition.X - this.Location.X < 7) || ((this.Location.X + this.Width) - Control.MousePosition.X < 7) || (Control.MousePosition.Y - this.Location.Y < 7) || ((this.Location.Y + this.Height) - Control.MousePosition.Y < 7))
+                if ((Control.MousePosition.X - this.Location.X < edge) || ((this.Location.X + this.Width) - Control.MousePosition.X < edge) || (Control.MousePosition.Y - this.Location.Y < edge) || ((this.Location.Y + this.Height) - Control.MousePosition.Y < edge))
                 {
                     WindowRight = this.Right;
                     WindowBottom = this.Bottom;
@@ -97,114 +116,117 @@ namespace Screenote
 
             if (ResizeWindow == true)
             {
-                int x = this.Location.X, y = this.Location.Y, width = this.Width, height = this.Height;
+                int x, y, width, height;
+
+                if (WindowRight - MousePosition.X < this.MinimumSize.Width)
+                {
+                    x = WindowRight - this.MinimumSize.Width;
+                    width = this.MinimumSize.Width;
+                }
+                else if (WindowRight - MousePosition.X > this.MaximumSize.Width)
+                {
+                    x = WindowRight - this.MaximumSize.Width;
+                    width = this.MaximumSize.Width;
+                }
+                else
+                {
+                    x = MousePosition.X;
+                    width = WindowRight - MousePosition.X;
+                }
+
+                if (WindowBottom - MousePosition.Y < this.MinimumSize.Height)
+                {
+                    y = WindowBottom - this.MinimumSize.Height;
+                    height = this.MinimumSize.Height;
+                }
+                else if (WindowBottom - MousePosition.Y > this.MaximumSize.Height)
+                {
+                    y = WindowBottom - this.MaximumSize.Height;
+                    height = this.MaximumSize.Height;
+                }
+                else
+                {
+                    y = MousePosition.Y;
+                    height = WindowBottom - MousePosition.Y;
+                }
 
                 switch (direction)
                 {
                     case Direction.Left:
-                        if (WindowRight - MousePosition.X > 15)
-                        {
-                            x = MousePosition.X;
-                            width = WindowRight - MousePosition.X;
-                        }
+                        this.Bounds = new Rectangle(new Point(x, this.Location.Y), new Size(width, this.Height));
                         Cursor.Current = Cursors.SizeWE;
                         break;
                     case Direction.Right:
-                        width = MousePosition.X - this.Left;
+                        this.Bounds = new Rectangle(new Point(this.Location.X, this.Location.Y), new Size(MousePosition.X - this.Left, this.Height));
                         Cursor.Current = Cursors.SizeWE;
                         break;
                     case Direction.Top:
-                        if (WindowBottom - MousePosition.Y > 15)
-                        {
-                            y = MousePosition.Y;
-                            height = WindowBottom - MousePosition.Y;
-                        }
+                        this.Bounds = new Rectangle(new Point(this.Location.X, y), new Size(this.Width, height));
                         Cursor.Current = Cursors.SizeNS;
                         break;
                     case Direction.Bottom:
-                        height = MousePosition.Y - this.Top;
+                        this.Bounds = new Rectangle(new Point(this.Location.X, this.Location.Y), new Size(this.Width, MousePosition.Y - this.Top));
                         Cursor.Current = Cursors.SizeNS;
                         break;
                     case Direction.LeftTop:
-                        if (WindowRight - MousePosition.X > 15)
-                        {
-                            x = MousePosition.X;
-                            width = WindowRight - MousePosition.X;
-                        }
-                        if (WindowBottom - MousePosition.Y > 15)
-                        {
-                            y = MousePosition.Y;
-                            height = WindowBottom - MousePosition.Y;
-                        }
+                        this.Bounds = new Rectangle(new Point(x, y), new Size(width, height));
                         Cursor.Current = Cursors.SizeNWSE;
                         break;
                     case Direction.LeftBottom:
-                        if (WindowRight - MousePosition.X > 15)
-                        {
-                            x = MousePosition.X;
-                            width = WindowRight - MousePosition.X;
-                        }
-                        height = MousePosition.Y - this.Top;
+                        this.Bounds = new Rectangle(new Point(x, this.Location.Y), new Size(width, MousePosition.Y - this.Top));
                         Cursor.Current = Cursors.SizeNESW;
                         break;
                     case Direction.RightTop:
-                        width = MousePosition.X - this.Left;
-                        if (WindowBottom - MousePosition.Y > 15)
-                        {
-                            y = MousePosition.Y;
-                            height = WindowBottom - MousePosition.Y;
-                        }
+                        this.Bounds = new Rectangle(new Point(this.Location.X, y), new Size(MousePosition.X - this.Left, height));
                         Cursor.Current = Cursors.SizeNESW;
                         break;
                     case Direction.RightBottom:
-                        width = MousePosition.X - this.Left;
-                        height = MousePosition.Y - this.Top;
+                        this.Bounds = new Rectangle(new Point(this.Location.X, this.Location.Y), new Size(MousePosition.X - this.Left, MousePosition.Y - this.Top));
                         Cursor.Current = Cursors.SizeNWSE;
                         break;
                 }
 
-                this.Bounds = new Rectangle(new Point(x, y), new Size(width, height));
                 this.Refresh();
                 return;
             }
             else
             {
-                if (Control.MousePosition.X - this.Location.X < 7)
+                if (Control.MousePosition.X - this.Location.X < edge)
                 {
                     Cursor.Current = Cursors.SizeWE;
                     direction = Direction.Left;
                 }
-                if ((this.Location.X + this.Width) - Control.MousePosition.X < 7)
+                if ((this.Location.X + this.Width) - Control.MousePosition.X < edge)
                 {
                     Cursor.Current = Cursors.SizeWE;
                     direction = Direction.Right;
                 }
-                if (Control.MousePosition.Y - this.Location.Y < 7)
+                if (Control.MousePosition.Y - this.Location.Y < edge)
                 {
                     Cursor.Current = Cursors.SizeNS;
                     direction = Direction.Top;
                 }
-                if ((this.Location.Y + this.Height) - Control.MousePosition.Y < 7)
+                if ((this.Location.Y + this.Height) - Control.MousePosition.Y < edge)
                 {
                     Cursor.Current = Cursors.SizeNS;
                     direction = Direction.Bottom;
                 }
-                if ((Control.MousePosition.X - this.Location.X < 7) && (Control.MousePosition.Y - this.Location.Y < 7))
+                if ((Control.MousePosition.X - this.Location.X < edge) && (Control.MousePosition.Y - this.Location.Y < edge))
                 {
                     Cursor.Current = Cursors.SizeNWSE;
                     direction = Direction.LeftTop;
                 }
-                if ((Control.MousePosition.X - this.Location.X < 7) && ((this.Location.Y + this.Height) - Control.MousePosition.Y < 7))
+                if ((Control.MousePosition.X - this.Location.X < edge) && ((this.Location.Y + this.Height) - Control.MousePosition.Y < edge))
                 {
                     Cursor.Current = Cursors.SizeNESW;
                     direction = Direction.LeftBottom;
                 }
-                if (((this.Location.X + this.Width) - Control.MousePosition.X < 7) && (Control.MousePosition.Y - this.Location.Y < 7))
+                if (((this.Location.X + this.Width) - Control.MousePosition.X < edge) && (Control.MousePosition.Y - this.Location.Y < edge))
                 {
                     Cursor.Current = Cursors.SizeNESW;
                     direction = Direction.RightTop;
                 }
-                if (((this.Location.X + this.Width) - Control.MousePosition.X < 7) && ((this.Location.Y + this.Height) - Control.MousePosition.Y < 7))
+                if (((this.Location.X + this.Width) - Control.MousePosition.X < edge) && ((this.Location.Y + this.Height) - Control.MousePosition.Y < edge))
                 {
                     Cursor.Current = Cursors.SizeNWSE;
                     direction = Direction.RightBottom;
@@ -262,7 +284,7 @@ namespace Screenote
                         }
                         else
                         {
-                            if ((this.Width - 2) / (this.Height - 2) > NoteSize.Width / NoteSize.Height)
+                            if ((float)(this.Width - 2) / (float)(this.Height - 2) > (float)NoteSize.Width / (float)NoteSize.Height)
                             {
                                 this.Width = (this.Height - 2) * NoteSize.Width / NoteSize.Height + 2;
                             }
