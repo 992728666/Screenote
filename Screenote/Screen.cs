@@ -108,26 +108,29 @@ namespace Screenote
                     case 937:
                         {
                             List<Bitmap> bitmaps = new List<Bitmap>();
-                            System.Collections.Specialized.StringCollection files = Clipboard.GetFileDropList();
-
-                            if (files != null)
-                            {
-                                foreach (string file in files)
-                                {
-                                    try
-                                    {
-                                        bitmaps.Add(new Bitmap(file));
-                                    }
-                                    catch
-                                    { }
-                                }
-                            }
 
                             Image image = Clipboard.GetImage();
                             if (image != null)
                             {
                                 bitmaps.Add(new Bitmap(image));
                                 image.Dispose();
+                            }
+                            else
+                            {
+                                System.Collections.Specialized.StringCollection files = Clipboard.GetFileDropList();
+
+                                if (files != null)
+                                {
+                                    foreach (string file in files)
+                                    {
+                                        try
+                                        {
+                                            bitmaps.Add(new Bitmap(file));
+                                        }
+                                        catch
+                                        { }
+                                    }
+                                }
                             }
 
                             foreach (Bitmap bitmap in bitmaps)
