@@ -32,8 +32,8 @@ namespace Screenote
         {
             InitializeComponent();
             NoteSize = size;
-            this.MinimumSize = new Size(16, 16);
-            this.MaximumSize = SystemInformation.VirtualScreen.Size;
+            this.MinimumSize = new Size(16 + 2, 16 + 2);
+            this.MaximumSize = new Size(SystemInformation.VirtualScreen.Width + 2, SystemInformation.VirtualScreen.Height + 2);
             this.Location = new Point(location.X - 1, location.Y - 1);
             this.Width = NoteSize.Width + 2;
             this.Height = NoteSize.Height + 2;
