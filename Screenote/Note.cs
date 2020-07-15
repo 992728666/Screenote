@@ -57,7 +57,7 @@ namespace Screenote
                     }
                 case 0xF030:
                     {
-                        this.Bounds = new Rectangle(SystemInformation.VirtualScreen.Location, SystemInformation.VirtualScreen.Size);
+                        this.Bounds = new Rectangle(new Point(SystemInformation.VirtualScreen.Location.X - 1, SystemInformation.VirtualScreen.Location.Y - 1), this.MaximumSize);
                         return;
                     }
             }
